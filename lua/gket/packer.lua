@@ -76,24 +76,5 @@ return require('packer').startup(function(use)
       'christoomey/vim-tmux-navigator',
       lazy = false,
     }
-    use {
-      'nvim-lualine/lualine.nvim',
-      config = function()
-        require('lualine').setup {
-          options = {
-            icons_enabled = false,
-            theme = 'auto',
-          },
-          sections = {
-            lualine_c = {'filename'},
-            lualine_x = {
-              {
-                'diagnostics',
-                symbols = { error = 'E:', warn = 'W:', info = 'I:', hint = 'H:' },
-              },
-            },
-          },
-        }
-      end
-    }
+    use 'nvim-lualine/lualine.nvim'
 end)
