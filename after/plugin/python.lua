@@ -60,6 +60,8 @@ local function get_python_path()
   return vim.fn.exepath('python3')
 end
 
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
+
 vim.lsp.config('pyright', {
   cmd = { 'pyright-langserver', '--stdio' },
   filetypes = { 'python' },
@@ -88,11 +90,22 @@ vim.lsp.config('pyright', {
 vim.opt.completeopt = { 'menu', 'menuone', 'noselect' }
 
 
--- Enable Pyright for Python files
+vim.lsp.enable('pyright')
+
+local function read_black_line_length()
+  local path = vim.fn.findfile('pyproject.toml', '.;')
+  if path == '' then return nil end
+  for line in io.lines(path) do
+    local len = line:match('^line%-length%s*=%s*(%d+)')
+    if len then return len end
+  end
+  return nil
+end
+
 vim.api.nvim_create_autocmd('FileType', {
   pattern = 'python',
   callback = function()
-    vim.lsp.enable('pyright')
+    vim.opt_local.colorcolumn = read_black_line_length() or '88'
   end,
 })
 
@@ -124,6 +137,6 @@ require("conform").setup({
 
 -- Setup nvim-lint for linting
 require('lint').linters_by_ft = {
-  python = { 'flake8', 'mypy' },
+  python = { 'flake8', 'ty' },
 }
 

@@ -92,7 +92,7 @@ vim.keymap.set("n", "<leader><leader>", function()
 end, { desc = "Source current file" })
 
 vim.keymap.set('n', '<leader>tt', ':NERDTreeToggle<CR>', { noremap = true, silent = true })
-vim.keymap.set('n', 'gd', vim.lsp.buf.type_definition, { noremap = true, silent = true })
+vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { noremap = true, silent = true })
 -- maximize / fullscreen current window
 vim.keymap.set("n", "<leader>wo", "<C-w>o")   -- o = only
 
