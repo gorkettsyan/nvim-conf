@@ -2,7 +2,7 @@ require'nvim-treesitter'.setup {
   -- Directory to install parsers and queries to (prepended to `runtimepath` to have priority)
   install_dir = vim.fn.stdpath('data') .. '/site',
 
-  ensure_installed = { "help", "lua", "python", "javascript", "typescript", "vim", }, -- Install these parsers
+  ensure_installed = { "help", "lua", "python", "javascript", "typescript", "tsx", "vim", "zig", }, -- Install these parsers
   sync_install = false, -- Don't block startup for installs
   highlight = {
     enable = true, -- Enable syntax highlighting

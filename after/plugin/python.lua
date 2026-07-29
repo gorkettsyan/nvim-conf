@@ -109,14 +109,7 @@ vim.api.nvim_create_autocmd('FileType', {
   end,
 })
 
--- Configure diagnostics display
-vim.diagnostic.config({
-  virtual_text = true,  -- Show errors inline
-  signs = true,         -- Show signs in gutter
-  underline = true,     -- Underline errors
-  update_in_insert = false,
-  severity_sort = true,
-})
+-- Diagnostic display and sign icons are configured in after/plugin/lsp.lua
 
 -- Setup conform.nvim for formatting
 require("conform").setup({
@@ -136,7 +129,9 @@ require("conform").setup({
 })
 
 -- Setup nvim-lint for linting
-require('lint').linters_by_ft = {
+-- Merge, don't assign: other language files register their own linters too.
+local lint = require('lint')
+lint.linters_by_ft = vim.tbl_extend('force', lint.linters_by_ft or {}, {
   python = { 'flake8', 'ty' },
-}
+})
 

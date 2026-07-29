@@ -11,13 +11,9 @@ return require('packer').startup(function(use)
         'nvim-telescope/telescope.nvim', tag = 'v0.2.0',
         requires = { 'nvim-lua/plenary.nvim' }
     }
-    -- lua/plugins/rose-pine.lua
     use {
         "rose-pine/neovim",
         name = "rose-pine",
-        config = function()
-            vim.cmd("colorscheme rose-pine")
-        end
     }
 
     use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' }
@@ -58,11 +54,19 @@ return require('packer').startup(function(use)
       config = function()
         require('copilot').setup({
           suggestion = {
-            auto_trigger = true,
+            enabled = false,
+            auto_trigger = false,
             keymap = {
               accept = '<Tab>',
             },
           },
+          panel = { enabled = false },
+        })
+        -- Belt-and-suspenders: force-disable on startup in case anything re-enables it.
+        vim.api.nvim_create_autocmd("VimEnter", {
+          callback = function()
+            pcall(vim.cmd, "Copilot disable")
+          end,
         })
       end,
     }
@@ -76,6 +80,16 @@ return require('packer').startup(function(use)
       'christoomey/vim-tmux-navigator',
       lazy = false,
     }
+    use 'shortcuts/no-neck-pain.nvim'
     use 'nvim-lualine/lualine.nvim'
     use 'folke/tokyonight.nvim'
+    use 'mg979/vim-visual-multi'
+    use {
+      'kawre/leetcode.nvim',
+      requires = {
+        'nvim-telescope/telescope.nvim',
+        'nvim-lua/plenary.nvim',
+        'MunifTanjim/nui.nvim',
+      },
+    }
 end)

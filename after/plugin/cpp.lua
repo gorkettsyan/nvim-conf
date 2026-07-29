@@ -83,10 +83,12 @@ require("conform").setup({
 })
 
 -- Setup nvim-lint for clang-tidy
-require('lint').linters_by_ft = {
+-- Merge, don't assign: other language files register their own linters too.
+local lint = require('lint')
+lint.linters_by_ft = vim.tbl_extend('force', lint.linters_by_ft or {}, {
   cpp = { 'clangtidy' },
   c = { 'clangtidy' },
-}
+})
 
 -- Run linters on save and text change
 vim.api.nvim_create_autocmd({ "BufWritePost", "BufEnter" }, {
@@ -96,55 +98,16 @@ vim.api.nvim_create_autocmd({ "BufWritePost", "BufEnter" }, {
   end,
 })
 
--- Configure diagnostics display
-vim.diagnostic.config({
-  virtual_text = true,
-  signs = true,
-  underline = true,
-  update_in_insert = false,
-  severity_sort = true,
-})
+-- Diagnostic display and sign icons are configured in after/plugin/lsp.lua
 
--- Diagnostic signs in the gutter
-local signs = { Error = "✘", Warn = "▲", Hint = "⚑", Info = "»" }
-for type, icon in pairs(signs) do
-  local hl = "DiagnosticSign" .. type
-  vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
-end
-
--- LSP Keymaps on attach
+-- Shared LSP keymaps live in after/plugin/lsp.lua; only the clangd-specific
+-- header/source toggle is defined here.
 vim.api.nvim_create_autocmd('LspAttach', {
   callback = function(args)
-    local bufnr = args.buf
     local client = vim.lsp.get_client_by_id(args.data.client_id)
-    
-    -- Only apply these keymaps for C++ files with clangd
     if client and client.name == 'clangd' then
-      local opts = { buffer = bufnr, noremap = true, silent = true }
-      
-      -- Navigation
-      vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
-      vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
-      vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
-      vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
-      vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
-      vim.keymap.set('n', 'gt', vim.lsp.buf.type_definition, opts)
-      
-      -- Actions
-      vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
-      vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
-      vim.keymap.set('n', '<leader>f', function()
-        require("conform").format({ async = true, lsp_fallback = true })
-      end, opts)
-      
-      -- Clangd specific: switch between header/source
-      vim.keymap.set('n', '<leader>h', '<cmd>ClangdSwitchSourceHeader<CR>', opts)
-      
-      -- Diagnostics
-      vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, opts)
-      vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
-      vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
-      vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, opts)
+      vim.keymap.set('n', '<leader>h', '<cmd>ClangdSwitchSourceHeader<CR>',
+        { buffer = args.buf, silent = true, desc = 'Switch header/source' })
     end
   end,
 })

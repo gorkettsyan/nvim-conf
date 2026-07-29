@@ -1,5 +1,9 @@
 vim.g.mapleader = " "
 
+vim.g.VM_maps = {
+  ['Find Under'] = '<leader>n',
+}
+
 vim.keymap.set("n", "<leader>pv", vim.cmd.Ex, { desc = "Open netrw (Ex file explorer)" })
 
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move selection down" })
@@ -92,7 +96,7 @@ vim.keymap.set("n", "<leader><leader>", function()
 end, { desc = "Source current file" })
 
 vim.keymap.set('n', '<leader>tt', ':NERDTreeToggle<CR>', { noremap = true, silent = true })
-vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { noremap = true, silent = true })
+-- `gd` is defined in after/plugin/lsp.lua (LSP with a grep fallback)
 -- maximize / fullscreen current window
 vim.keymap.set("n", "<leader>wo", "<C-w>o")   -- o = only
 
@@ -118,5 +122,6 @@ vim.keymap.set("n", "<leader>wc", "<cmd>close<CR>", { desc = "Close split" })
 vim.keymap.set("n", "<leader>wo", "<C-w>o", { desc = "Window: only (maximize)" })
 vim.keymap.set("n", "<leader>wq", "<C-w>q", { desc = "Window: close" })
 vim.keymap.set("n", "<leader>w=", "<C-w>=", { desc = "Window: equalize" })
-vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "Show diagnostic" })
+-- NOTE: <leader>d is "delete without yanking" (defined above). Diagnostics are
+-- on <leader>e -- see after/plugin/lsp.lua.
 
