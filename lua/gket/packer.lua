@@ -31,22 +31,13 @@ return require('packer').startup(function(use)
     use 'L3MON4D3/LuaSnip'
     use 'saadparwaiz1/cmp_luasnip'
     use {
-      'preservim/nerdtree',
-      requires = { 'Xuyuanp/nerdtree-git-plugin' },
-      config = function()
-        vim.g.NERDTreeGitStatusIndicatorMapCustom = {
-          Modified  = '✹',
-          Staged    = '✚',
-          Untracked = '✭',
-          Renamed   = '➜',
-          Unmerged  = '═',
-          Deleted   = '✖',
-          Dirty     = '✗',
-          Ignored   = '☒',
-          Clean     = '✔︎',
-          Unknown   = '?',
-        }
-      end
+      'nvim-neo-tree/neo-tree.nvim',
+      branch = 'v3.x',
+      requires = {
+        'nvim-lua/plenary.nvim',
+        'MunifTanjim/nui.nvim',
+        'nvim-tree/nvim-web-devicons', -- optional; see after/plugin/neo-tree.lua
+      },
     }
     use 'savq/melange-nvim'
     use {
@@ -80,7 +71,6 @@ return require('packer').startup(function(use)
       'christoomey/vim-tmux-navigator',
       lazy = false,
     }
-    use 'shortcuts/no-neck-pain.nvim'
     use 'nvim-lualine/lualine.nvim'
     use 'folke/tokyonight.nvim'
     use 'mg979/vim-visual-multi'

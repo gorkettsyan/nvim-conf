@@ -4,7 +4,8 @@ vim.g.VM_maps = {
   ['Find Under'] = '<leader>n',
 }
 
-vim.keymap.set("n", "<leader>pv", vim.cmd.Ex, { desc = "Open netrw (Ex file explorer)" })
+vim.keymap.set("n", "<leader>pv", "<cmd>Neotree focus<cr>",
+  { silent = true, desc = "Focus file tree (was netrw :Ex)" })
 
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move selection down" })
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
@@ -95,7 +96,10 @@ vim.keymap.set("n", "<leader><leader>", function()
   vim.cmd("so")
 end, { desc = "Source current file" })
 
-vim.keymap.set('n', '<leader>tt', ':NERDTreeToggle<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', '<leader>tt', '<cmd>Neotree toggle<cr>',
+  { silent = true, desc = 'Toggle file tree (neo-tree)' })
+vim.keymap.set('n', '<leader>tr', '<cmd>Neotree reveal<cr>',
+  { silent = true, desc = 'Reveal current file in tree and focus it' })
 -- `gd` is defined in after/plugin/lsp.lua (LSP with a grep fallback)
 -- maximize / fullscreen current window
 vim.keymap.set("n", "<leader>wo", "<C-w>o")   -- o = only

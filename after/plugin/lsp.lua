@@ -36,7 +36,11 @@ vim.lsp.enable('lua_ls')
 -- Sign icons belong here since Neovim 0.10. Defining DiagnosticSign* via
 -- vim.fn.sign_define is deprecated.
 vim.diagnostic.config({
-  virtual_text = true,
+  -- Off deliberately: the cursor line is rendered by virtual_lines below, and
+  -- virtual_text has no "hide on current line" option -- only `current_line =
+  -- true`, which is the opposite. Leaving both on double-prints every message
+  -- on the line you're sitting on. Other lines still show a sign + underline.
+  virtual_text = false,
   underline = true,
   update_in_insert = false,
   severity_sort = true,
@@ -48,6 +52,77 @@ vim.diagnostic.config({
       [vim.diagnostic.severity.INFO]  = '»',
     },
   },
+})
+
+--------------------------------------------------------------------------
+-- Auto-show the diagnostic under the cursor
+--------------------------------------------------------------------------
+--
+-- Neovim 0.11's `virtual_lines` renders the full, untruncated message inline
+-- below the cursor line. `current_line = true` limits it to the line you're on.
+--
+-- It has no debounce of its own, though: enabled statically it re-renders on
+-- every cursor step, so scrolling through a file with errors makes the text
+-- below the cursor jump constantly. So we toggle it on a timer instead, and
+-- only bother when the line actually carries a diagnostic -- which means no
+-- work at all for the vast majority of cursor movements.
+--
+-- Deliberately not using `updatetime`/CursorHold: yours is 50ms (see
+-- lua/gket/set.lua) and other things want it that low.
+
+local VL_DELAY_MS = 300
+
+local vl_on = false
+local vl_timer = nil
+
+local function vl_set(on)
+  if vl_on == on then return end
+  vl_on = on
+  vim.diagnostic.config({ virtual_lines = on and { current_line = true } or false })
+end
+
+local function vl_stop_timer()
+  if vl_timer then
+    vl_timer:stop()
+    vl_timer:close()
+    vl_timer = nil
+  end
+end
+
+local function cursor_line_has_diagnostic()
+  local lnum = vim.api.nvim_win_get_cursor(0)[1] - 1
+  return #vim.diagnostic.get(0, { lnum = lnum }) > 0
+end
+
+local function vl_schedule()
+  vl_stop_timer()
+  vl_set(false) -- collapse immediately so the text stops shifting while moving
+  if not cursor_line_has_diagnostic() then return end
+
+  vl_timer = vim.uv.new_timer()
+  vl_timer:start(VL_DELAY_MS, 0, vim.schedule_wrap(function()
+    vl_stop_timer()
+    -- Re-check: the cursor may have moved on, or insert mode started.
+    if vim.api.nvim_get_mode().mode:sub(1, 1) ~= 'i' and cursor_line_has_diagnostic() then
+      vl_set(true)
+    end
+  end))
+end
+
+local vl_group = vim.api.nvim_create_augroup('gket_diag_virtual_lines', { clear = true })
+
+vim.api.nvim_create_autocmd({ 'CursorMoved', 'DiagnosticChanged' }, {
+  group = vl_group,
+  callback = vl_schedule,
+})
+
+-- Never expand while typing, or in a buffer you've left.
+vim.api.nvim_create_autocmd({ 'InsertEnter', 'BufLeave', 'WinLeave' }, {
+  group = vl_group,
+  callback = function()
+    vl_stop_timer()
+    vl_set(false)
+  end,
 })
 
 --------------------------------------------------------------------------
