@@ -16,8 +16,15 @@ if not ok then return end
 local NERD_FONT = false
 
 neotree.setup({
-  -- Don't keep nvim alive just for the sidebar.
-  close_if_last_window = true,
+  -- MUST stay false.
+  --
+  -- With this true, closing your last file window leaves neo-tree as the only
+  -- window, so neo-tree closes itself -- and that exits nvim. Observed
+  -- directly: `:q` on a file buffer with the sidebar open terminated the whole
+  -- session instead of closing one window. Almost certainly the same cause as
+  -- nvim vanishing on <leader>1, since harpoon can delete the buffer that was
+  -- holding the last non-tree window.
+  close_if_last_window = false,
   popup_border_style = 'rounded',
   enable_git_status = true,
   enable_diagnostics = true,

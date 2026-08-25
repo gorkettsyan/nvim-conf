@@ -35,20 +35,29 @@ vim.lsp.enable('lua_ls')
 
 -- Sign icons belong here since Neovim 0.10. Defining DiagnosticSign* via
 -- vim.fn.sign_define is deprecated.
+-- HINT-severity diagnostics are suppressed everywhere: gutter, underline,
+-- the cursor-line virtual_lines below, and ]d/[d navigation. These are the
+-- low-signal nudges servers emit constantly (unused-import dimming, "prefer
+-- const", ts_ls style suggestions) and they drown out real problems.
+--
+-- Change to `vim.diagnostic.severity.HINT` to bring them back, or drop the
+-- filter entirely to also restore INFO.
+local DIAG_SEVERITY = { min = vim.diagnostic.severity.INFO }
+
 vim.diagnostic.config({
   -- Off deliberately: the cursor line is rendered by virtual_lines below, and
   -- virtual_text has no "hide on current line" option -- only `current_line =
   -- true`, which is the opposite. Leaving both on double-prints every message
   -- on the line you're sitting on. Other lines still show a sign + underline.
   virtual_text = false,
-  underline = true,
+  underline = { severity = DIAG_SEVERITY },
   update_in_insert = false,
   severity_sort = true,
   signs = {
+    severity = DIAG_SEVERITY,
     text = {
       [vim.diagnostic.severity.ERROR] = '✘',
       [vim.diagnostic.severity.WARN]  = '▲',
-      [vim.diagnostic.severity.HINT]  = '⚑',
       [vim.diagnostic.severity.INFO]  = '»',
     },
   },
@@ -78,7 +87,9 @@ local vl_timer = nil
 local function vl_set(on)
   if vl_on == on then return end
   vl_on = on
-  vim.diagnostic.config({ virtual_lines = on and { current_line = true } or false })
+  vim.diagnostic.config({
+    virtual_lines = on and { current_line = true, severity = DIAG_SEVERITY } or false,
+  })
 end
 
 local function vl_stop_timer()
@@ -91,7 +102,7 @@ end
 
 local function cursor_line_has_diagnostic()
   local lnum = vim.api.nvim_win_get_cursor(0)[1] - 1
-  return #vim.diagnostic.get(0, { lnum = lnum }) > 0
+  return #vim.diagnostic.get(0, { lnum = lnum, severity = DIAG_SEVERITY }) > 0
 end
 
 local function vl_schedule()
@@ -228,9 +239,15 @@ vim.api.nvim_create_autocmd('LspAttach', {
       require('conform').format({ async = true, lsp_fallback = true })
     end, 'Format buffer')
 
-    map('<leader>e', vim.diagnostic.open_float, 'Show diagnostic')
-    map('[d', function() vim.diagnostic.jump({ count = -1, float = true }) end, 'Prev diagnostic')
-    map(']d', function() vim.diagnostic.jump({ count = 1, float = true }) end, 'Next diagnostic')
+    map('<leader>e', function()
+      vim.diagnostic.open_float({ severity = DIAG_SEVERITY })
+    end, 'Show diagnostic')
+    map('[d', function()
+      vim.diagnostic.jump({ count = -1, float = true, severity = DIAG_SEVERITY })
+    end, 'Prev diagnostic')
+    map(']d', function()
+      vim.diagnostic.jump({ count = 1, float = true, severity = DIAG_SEVERITY })
+    end, 'Next diagnostic')
   end,
 })
 

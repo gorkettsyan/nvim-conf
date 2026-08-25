@@ -90,11 +90,14 @@ lint.linters_by_ft = vim.tbl_extend('force', lint.linters_by_ft or {}, {
   c = { 'clangtidy' },
 })
 
--- Run linters on save and text change
-vim.api.nvim_create_autocmd({ "BufWritePost", "BufEnter" }, {
+-- Run linters on save only. BufEnter re-ran clang-tidy on every window
+-- switch, which is expensive and errors loudly when clang-tidy isn't present.
+vim.api.nvim_create_autocmd("BufWritePost", {
   pattern = { "*.cpp", "*.hpp", "*.c", "*.h", "*.cc", "*.cxx" },
   callback = function()
-    require("lint").try_lint()
+    if vim.fn.executable("clang-tidy") == 1 then
+      require("lint").try_lint()
+    end
   end,
 })
 

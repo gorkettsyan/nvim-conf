@@ -9,10 +9,20 @@ require('telescope').setup({
       i = {
         ['<C-q>'] = actions.send_to_qflist + actions.open_qflist,
         ['<M-q>'] = actions.send_selected_to_qflist + actions.open_qflist,
+
+        -- Esc closes outright rather than dropping to normal mode.
+        -- Bound explicitly in BOTH modes: this is telescope's default too,
+        -- but stating it means nothing else can shadow it -- plugins that
+        -- hook buffer-local <Esc> (harpoon's sticky mode, noice's cmdline
+        -- handling) have otherwise been able to swallow the first press.
+        ['<Esc>'] = actions.close,
+        ['<C-c>'] = actions.close,
       },
       n = {
         ['<leader>q'] = actions.send_to_qflist + actions.open_qflist,
         ['<leader>Q'] = actions.send_selected_to_qflist + actions.open_qflist,
+        ['<Esc>'] = actions.close,
+        ['q'] = actions.close,
       },
     },
   },

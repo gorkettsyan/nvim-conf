@@ -74,6 +74,24 @@ return require('packer').startup(function(use)
     use 'nvim-lualine/lualine.nvim'
     use 'folke/tokyonight.nvim'
     use 'mg979/vim-visual-multi'
+    -- Low-saturation themes, for comparison against kanagawa-paper-ink (16%).
+    -- Both are built on the premise that default syntax highlighting is too
+    -- colourful, so they should land at or below that.
+    use 'vague2k/vague.nvim'
+    use 'aktersnurra/no-clown-fiesta.nvim'
+
+    -- Smoothness: animated scrolling, keymap discovery, and a modern UI
+    -- for messages/cmdline/LSP progress.
+    use 'karb94/neoscroll.nvim'
+    use 'folke/which-key.nvim'
+    use {
+      'folke/noice.nvim',
+      requires = {
+        'MunifTanjim/nui.nvim',
+        'rcarriga/nvim-notify',
+      },
+    }
+
     use {
       'kawre/leetcode.nvim',
       requires = {

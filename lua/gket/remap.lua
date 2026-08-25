@@ -60,33 +60,13 @@ vim.keymap.set(
 
 vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true, desc = "Make current file executable" })
 
-vim.keymap.set(
-  "n",
-  "<leader>ee",
-  "oif err != nil {<CR>}<Esc>Oreturn err<Esc>",
-  { desc = "Insert Go error check with return err" }
-)
-
-vim.keymap.set(
-  "n",
-  "<leader>ea",
-  "oassert.NoError(err, \"\")<Esc>F\";a",
-  { desc = "Insert assert.NoError(err, \"\")" }
-)
-
-vim.keymap.set(
-  "n",
-  "<leader>ef",
-  "oif err != nil {<CR>}<Esc>Olog.Fatalf(\"error: %s\\n\", err.Error())<Esc>jj",
-  { desc = "Insert Go error check with log.Fatalf" }
-)
-
-vim.keymap.set(
-  "n",
-  "<leader>el",
-  "oif err != nil {<CR>}<Esc>O.logger.Error(\"error\", \"error\", err)<Esc>F.;i",
-  { desc = "Insert Go error check with logger.Error" }
-)
+-- The <leader>ee / ea / ef / el Go error-check snippets used to live here as
+-- GLOBAL normal-mode mappings, so they fired in Python, Lua, TS -- any
+-- filetype. They now live in after/plugin/go.lua, scoped to Go buffers.
+--
+-- Side benefit: outside Go, <leader>e is no longer a prefix of anything, so
+-- the diagnostic float (after/plugin/lsp.lua) fires instantly instead of
+-- waiting out the full 1000ms timeoutlen.
 
 vim.keymap.set("n", "<leader>ca", function()
   require("cellular-automaton").start_animation("make_it_rain")

@@ -10,10 +10,48 @@ require("harpoon").setup({
 vim.keymap.set("n", "<leader>ha", mark.add_file, { desc = "Harpoon: add file" })
 vim.keymap.set("n", "<leader>hh", ui.toggle_quick_menu, { desc = "Harpoon: toggle menu" })
 
+-- Move focus out of a sidebar/utility window before opening a file.
+--
+-- harpoon's ui.nav_file() calls nvim_set_current_buf() directly, which
+-- replaces whatever the *current* window holds. Pressing <leader>1 while
+-- focused in neo-tree therefore loads your file into the sidebar window and
+-- destroys the tree pane. Confirmed: filetype goes neo-tree -> lua in place.
+local function leave_sidebar()
+    local ft = vim.bo.filetype
+    if ft ~= "neo-tree" and not ft:match("^neo%-tree") then
+        return
+    end
+
+    -- Prefer a window already showing a real file.
+    for _, win in ipairs(vim.api.nvim_list_wins()) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        local bft = vim.bo[buf].filetype
+        if not bft:match("^neo%-tree") and vim.bo[buf].buftype == "" then
+            vim.api.nvim_set_current_win(win)
+            return
+        end
+    end
+
+    -- Nothing suitable open: make a window rather than eating the sidebar.
+    vim.cmd("wincmd l")
+    if vim.bo.filetype:match("^neo%-tree") then
+        vim.cmd("vsplit")
+    end
+end
+
 local function nav(i)
+    leave_sidebar()
+
     local ok, err = pcall(ui.nav_file, i)
-    if not ok and err:match("Cursor position outside buffer") then
-        vim.cmd("edit " .. require("harpoon.mark").get_marked_file_name(i))
+    if ok then return end
+
+    -- Only the known-recoverable failure gets the fallback, and only when the
+    -- mark actually resolves to a name -- `"edit " .. nil` would throw.
+    if type(err) == "string" and err:match("Cursor position outside buffer") then
+        local name = require("harpoon.mark").get_marked_file_name(i)
+        if name and name ~= "" then
+            vim.cmd("edit " .. vim.fn.fnameescape(name))
+        end
     end
 end
 

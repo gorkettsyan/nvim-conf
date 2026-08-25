@@ -65,3 +65,37 @@ vim.api.nvim_create_autocmd('FileType', {
     vim.opt_local.shiftwidth = 4
   end,
 })
+
+--------------------------------------------------------------------------
+-- Go error-handling snippets
+--------------------------------------------------------------------------
+--
+-- Moved here from lua/gket/remap.lua, where they were registered globally and
+-- so inserted Go boilerplate into Python, Lua and TypeScript buffers too.
+-- Buffer-local now, applied only to Go files.
+
+vim.api.nvim_create_autocmd('FileType', {
+  group = vim.api.nvim_create_augroup('gket_go_snippets', { clear = true }),
+  pattern = { 'go', 'gomod' },
+  callback = function(args)
+    local function snip(lhs, rhs, desc)
+      vim.keymap.set('n', lhs, rhs, { buffer = args.buf, desc = desc })
+    end
+
+    snip('<leader>ee',
+      'oif err != nil {<CR>}<Esc>Oreturn err<Esc>',
+      'Go: if err != nil { return err }')
+
+    snip('<leader>ea',
+      'oassert.NoError(err, "")<Esc>F";a',
+      'Go: assert.NoError(err, "")')
+
+    snip('<leader>ef',
+      'oif err != nil {<CR>}<Esc>Olog.Fatalf("error: %s\\n", err.Error())<Esc>jj',
+      'Go: if err != nil { log.Fatalf(...) }')
+
+    snip('<leader>el',
+      'oif err != nil {<CR>}<Esc>O.logger.Error("error", "error", err)<Esc>F.;i',
+      'Go: if err != nil { logger.Error(...) }')
+  end,
+})

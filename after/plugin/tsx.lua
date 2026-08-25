@@ -54,11 +54,18 @@ lint.linters_by_ft = vim.tbl_extend('force', lint.linters_by_ft or {}, {
   javascriptreact = { 'eslint' },
 })
 
--- Run linter on save
-vim.api.nvim_create_autocmd({ "BufWritePost", "BufEnter" }, {
+-- Run the linter on save only.
+--
+-- Previously this also fired on BufEnter, which re-ran eslint every time you
+-- so much as switched windows -- and when eslint isn't installed for the
+-- project, each one printed "Error running eslint: ENOENT" and cost a process
+-- spawn. Guarding on executable() keeps projects without eslint silent.
+vim.api.nvim_create_autocmd("BufWritePost", {
   pattern = { "*.ts", "*.tsx", "*.js", "*.jsx" },
   callback = function()
-    require("lint").try_lint()
+    if vim.fn.executable("eslint") == 1 or vim.fn.executable("npx") == 1 then
+      require("lint").try_lint()
+    end
   end,
 })
 
