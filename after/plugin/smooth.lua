@@ -61,8 +61,8 @@ if ok_wk then
     { '<leader>s', group = 'split / substitute' },
     { '<leader>g', group = 'goto (telescope)' },
     { '<leader>t', group = 'tree / test' },
+    { '<leader>d', group = 'debug' },
     { '<leader>e', group = 'error snippets + diagnostic' },
-    { '<leader>d', group = 'delete (no yank)' },
     { ']', group = 'next' },
     { '[', group = 'prev' },
   })

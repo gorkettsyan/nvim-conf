@@ -1,7 +1,16 @@
 vim.g.mapleader = " "
 
+-- vim-visual-multi. Its <C-Down>/<C-Up> defaults never arrive: macOS binds
+-- Ctrl+arrows to Mission Control. <leader>m is the multi-cursor prefix instead.
 vim.g.VM_maps = {
-  ['Find Under'] = '<leader>n',
+  ['Find Under'] = '<leader>n',         -- next occurrence of word (VSCode Cmd-D)
+  ['Find Subword Under'] = '<leader>n', -- same, from a visual selection
+  ['Add Cursor Down'] = '<leader>mj',   -- repeatable while multi-cursor is active
+  ['Add Cursor Up'] = '<leader>mk',
+  ['Add Cursor At Pos'] = '<leader>mm',
+  ['Select All'] = '<leader>ma',        -- every occurrence of word under cursor
+  ['Visual Cursors'] = '<leader>mc',    -- selection -> one cursor per line
+  ['Visual Add'] = '<leader>mv',
 }
 
 vim.keymap.set("n", "<leader>pv", "<cmd>Neotree focus<cr>",
@@ -28,6 +37,28 @@ vim.keymap.set("n", "<leader>zig", "<cmd>LspRestart<cr>", { desc = "Restart LSP"
 vim.keymap.set("n", "<leader>lt", function()
   vim.cmd [[ PlenaryBustedFile % ]]
 end, { desc = "Run PlenaryBustedFile for current file" })
+
+-- I/A from a plain v or V selection edit every line, instead of only the first,
+-- by switching the selection to blockwise first (no <C-v> needed). V picks
+-- column 1, v keeps the columns you selected, and A on a linewise selection
+-- appends at each line's own end. <C-v> itself is left untouched.
+--
+-- Caveat: like all blockwise inserts this shows one cursor and only fills the
+-- other lines on <Esc>, and it skips empty lines. For those, <leader>mc turns
+-- the selection into real vim-visual-multi cursors, then press I.
+vim.keymap.set("x", "I", function()
+  local mode = vim.fn.mode()
+  if mode == "V" then return "<C-v>0I" end
+  if mode == "v" then return "<C-v>I" end
+  return "I"
+end, { expr = true, desc = "Insert at start of every selected line" })
+
+vim.keymap.set("x", "A", function()
+  local mode = vim.fn.mode()
+  if mode == "V" then return "<C-v>$A" end
+  if mode == "v" then return "<C-v>A" end
+  return "A"
+end, { expr = true, desc = "Append at end of every selected line" })
 
 -- greatest remap ever
 vim.keymap.set("x", "<leader>p", [["_dP]], { desc = "Paste over selection without yanking" })
@@ -72,9 +103,36 @@ vim.keymap.set("n", "<leader>ca", function()
   require("cellular-automaton").start_animation("make_it_rain")
 end, { desc = "Cellular automaton: make it rain" })
 
+-- Source the current file -- only meaningful for Lua/Vimscript.
+--
+-- Unguarded, `:so` on any other filetype hands the buffer to the Ex
+-- interpreter: a .ts file produces
+--   E492: Not an editor command: import { ... } from "..."
+-- because nvim tries to run line 1 as a command.
 vim.keymap.set("n", "<leader><leader>", function()
-  vim.cmd("so")
-end, { desc = "Source current file" })
+  local ft = vim.bo.filetype
+  if ft ~= "lua" and ft ~= "vim" then
+    vim.notify(
+      ("Not sourcing a %s file -- :so only runs Lua/Vimscript")
+        :format(ft ~= "" and ft or "unknown"),
+      vim.log.levels.WARN
+    )
+    return
+  end
+
+  local file = vim.api.nvim_buf_get_name(0)
+  if file == "" then
+    vim.notify("Buffer has no file to source", vim.log.levels.WARN)
+    return
+  end
+
+  local ok, err = pcall(vim.cmd.source, file)
+  if ok then
+    vim.notify("Sourced " .. vim.fn.fnamemodify(file, ":~:."), vim.log.levels.INFO)
+  else
+    vim.notify("Source failed: " .. tostring(err), vim.log.levels.ERROR)
+  end
+end, { desc = "Source current file (Lua/Vim only)" })
 
 vim.keymap.set('n', '<leader>tt', '<cmd>Neotree toggle<cr>',
   { silent = true, desc = 'Toggle file tree (neo-tree)' })

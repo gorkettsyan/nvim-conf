@@ -40,27 +40,10 @@ return require('packer').startup(function(use)
       },
     }
     use 'savq/melange-nvim'
-    use {
-      'zbirenbaum/copilot.lua',
-      config = function()
-        require('copilot').setup({
-          suggestion = {
-            enabled = false,
-            auto_trigger = false,
-            keymap = {
-              accept = '<Tab>',
-            },
-          },
-          panel = { enabled = false },
-        })
-        -- Belt-and-suspenders: force-disable on startup in case anything re-enables it.
-        vim.api.nvim_create_autocmd("VimEnter", {
-          callback = function()
-            pcall(vim.cmd, "Copilot disable")
-          end,
-        })
-      end,
-    }
+    -- Configured in after/plugin/copilot.lua, not here: packer's
+    -- `config = function()` blocks only run via plugin/packer_compiled.lua,
+    -- which is stale on this machine.
+    use 'zbirenbaum/copilot.lua'
     use {
        'windwp/nvim-autopairs',
     }
@@ -74,6 +57,21 @@ return require('packer').startup(function(use)
     use 'nvim-lualine/lualine.nvim'
     use 'folke/tokyonight.nvim'
     use 'mg979/vim-visual-multi'
+
+    -- Search/replace across files in one editable buffer.
+    use { 'MagicDuck/grug-far.nvim' }
+    -- Debugging (DAP -- the same protocol VS Code uses).
+    use 'mfussenegger/nvim-dap'
+    use {
+      'rcarriga/nvim-dap-ui',
+      requires = { 'mfussenegger/nvim-dap', 'nvim-neotest/nvim-nio' },
+    }
+    use 'theHamsta/nvim-dap-virtual-text'
+    -- Per-language adapters. Each also needs an external debugger binary --
+    -- see the install notes at the top of after/plugin/dap.lua.
+    use { 'mfussenegger/nvim-dap-python', requires = { 'mfussenegger/nvim-dap' } }
+    use { 'leoluz/nvim-dap-go', requires = { 'mfussenegger/nvim-dap' } }
+
     -- Low-saturation themes, for comparison against kanagawa-paper-ink (16%).
     -- Both are built on the premise that default syntax highlighting is too
     -- colourful, so they should land at or below that.
